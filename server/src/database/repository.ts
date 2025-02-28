@@ -5,9 +5,6 @@ export class Repository {
     private prisma: PrismaClient = new PrismaClient();
 
     async addProduct(data: CreateProduct): Promise<Product> {
-        console.log({
-            data,
-        });
         return this.prisma.product.create({
             data,
         });
@@ -29,10 +26,10 @@ export class Repository {
         });
     }
 
-    async getProductByName(name: string): Promise<Product | null> {
+    async getProductByUrl(url: string): Promise<Product | null> {
         return this.prisma.product.findFirst({
             where: {
-                name,
+                url,
             },
         });
     }
