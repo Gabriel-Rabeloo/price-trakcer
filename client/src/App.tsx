@@ -1,44 +1,51 @@
 import React from 'react';
-import PriceChart from './components/PriceChart';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { useProducts } from './hooks/use-products.ts';
+import PriceChart from './components/price-chart.tsx';
 
-const sampleProducts = [
-    {
-        id: 1,
-        name: 'iPhone 16 Pro Max 256GB White Titanium',
-        priceHistory: [
-            { id: 1, productId: 1, price: '1749', scrapedAt: '2025-02-20T12:00:00Z' },
-            { id: 2, productId: 1, price: '1729', scrapedAt: '2025-02-22T12:00:00Z' },
-            { id: 3, productId: 1, price: '1699', scrapedAt: '2025-02-25T12:00:00Z' },
-            { id: 4, productId: 1, price: '1749', scrapedAt: '2025-02-27T12:00:00Z' },
-        ],
-    },
-    {
-        id: 2,
-        name: 'iPhone 16 Pro Max 512GB Black Titanium',
-        priceHistory: [
-            { id: 5, productId: 2, price: '2049', scrapedAt: '2025-02-20T12:00:00Z' },
-            { id: 6, productId: 2, price: '2029', scrapedAt: '2025-02-22T12:00:00Z' },
-            { id: 7, productId: 2, price: '1999', scrapedAt: '2025-02-25T12:00:00Z' },
-            { id: 8, productId: 2, price: '2049', scrapedAt: '2025-02-27T12:00:00Z' },
-        ],
-    },
-    {
-        id: 3,
-        name: 'iPhone 16 Pro Max 1TB Desert Titanium',
-        priceHistory: [
-            { id: 9, productId: 3, price: '2349', scrapedAt: '2025-02-20T12:00:00Z' },
-            { id: 10, productId: 3, price: '2299', scrapedAt: '2025-02-22T12:00:00Z' },
-            { id: 11, productId: 3, price: '2249', scrapedAt: '2025-02-25T12:00:00Z' },
-            { id: 12, productId: 3, price: '2349', scrapedAt: '2025-02-27T12:00:00Z' },
-        ],
-    },
-];
+const queryClient = new QueryClient();
 
 const App: React.FC = () => {
     return (
-        <div>
-            <h1>Histórico de Preços de iPhones</h1>
-            <PriceChart products={sampleProducts} />
+        <QueryClientProvider client={queryClient}>
+            <div
+                style={{
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    height: '100vh', // Full viewport height
+                    width: '100vw', // Full viewport width
+                    backgroundColor: '#111', // Darker background
+                    color: 'white',
+                }}
+            >
+                <ProductsView />
+            </div>
+        </QueryClientProvider>
+    );
+};
+
+const ProductsView: React.FC = () => {
+    const { data: products, isLoading, error } = useProducts();
+
+    if (isLoading) return <p>Loading...</p>;
+    if (error) return <p>Error fetching products.</p>;
+
+    return (
+        <div
+            style={{
+                width: '80%',
+                height: '80%',
+                maxWidth: '1200px',
+                padding: '20px',
+                backgroundColor: '#222', // Slightly lighter than background
+                borderRadius: '10px',
+                boxShadow: '0 4px 10px rgba(0,0,0,0.3)',
+                textAlign: 'center',
+            }}
+        >
+            <h1>Histórico de Preços</h1>
+            <PriceChart products={products} />
         </div>
     );
 };

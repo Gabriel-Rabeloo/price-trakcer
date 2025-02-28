@@ -1,10 +1,13 @@
 import Fastify from 'fastify';
 import puppeteer from 'puppeteer';
+import cors from '@fastify/cors';
+
 import { Repository } from './database/repository';
 
 const server = Fastify({ logger: true });
 
 const url = 'https://www.apple.com/ca/shop/buy-iphone/iphone-16-pro';
+
 server.post('/run', async (request, reply) => {
     const browser = await puppeteer.launch();
     const page = await browser.newPage();
@@ -16,7 +19,7 @@ server.post('/run', async (request, reply) => {
         const jsonData = JSON.parse(scriptTag?.textContent || '');
 
         const iphonePrices: Array<{ price: number; name: string }> = jsonData.data.products.map((product: { price: { fullPrice: number }; name: string }) => {
-            return { price: product.price.fullPrice, name: product.name };
+            return { price: product.price.fullPrice + Math.floor(Math.random() * 6000) + 1, name: product.name };
         });
         return iphonePrices;
     });
@@ -39,6 +42,9 @@ server.get('/products', async (request, reply) => {
 });
 
 (async () => {
+    await server.register(cors, {
+        origin: '*',
+    });
     await server.listen({
         port: 4242,
     });

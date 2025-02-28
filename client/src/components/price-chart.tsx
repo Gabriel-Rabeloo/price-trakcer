@@ -34,17 +34,27 @@ const PriceChart: React.FC<PriceChartProps> = ({ products }) => {
     if (!products.length) return <p>Sem dados para exibir.</p>;
 
     // Pegar todas as datas únicas ordenadas
-    const allDates = Array.from(new Set(products.flatMap((product) => product.priceHistory.map((entry) => entry.scrapedAt)))).sort();
+
+    let biggestIndex = 0;
+    products.forEach((product) => {
+        if (product.priceHistory.length > biggestIndex) {
+            biggestIndex = product.priceHistory.length;
+        }
+    });
+
+    const labels = [];
+
+    for (let i = 1; i <= biggestIndex; i++) {
+        labels.push(i);
+    }
 
     // Criar datasets para cada produto
     const datasets = products.map((product) => {
         const color = getRandomColor();
+
         return {
             label: product.name,
-            data: allDates.map((date) => {
-                const history = product.priceHistory.find((entry) => entry.scrapedAt === date);
-                return history ? Number(history.price) : null;
-            }),
+            data: product.priceHistory.map((el) => el.price),
             borderColor: color,
             backgroundColor: `${color}66`,
             tension: 0.2,
@@ -52,17 +62,41 @@ const PriceChart: React.FC<PriceChartProps> = ({ products }) => {
     });
 
     const data = {
-        labels: allDates.map((date) => new Date(date).toLocaleDateString()),
+        labels,
         datasets,
     };
 
     const options = {
         responsive: true,
+        interaction: {
+            mode: 'index' as const,
+            intersect: false,
+        },
+        stacked: false,
         plugins: {
-            legend: { position: 'top' as const },
-            title: { display: true, text: 'Histórico de Preços' },
+            title: {
+                display: true,
+                text: 'Chart.js Line Chart - Multi Axis',
+            },
+        },
+        scales: {
+            y: {
+                type: 'linear' as const,
+                display: true,
+                position: 'left' as const,
+            },
+            y1: {
+                type: 'linear' as const,
+                display: true,
+                position: 'right' as const,
+                grid: {
+                    drawOnChartArea: false,
+                },
+            },
         },
     };
+
+    console.log(data);
 
     return <Line data={data} options={options} />;
 };
