@@ -1,4 +1,4 @@
-import Fastify from 'fastify';
+import Fastify, {FastifyRequest} from 'fastify';
 import puppeteer from 'puppeteer';
 import cors from '@fastify/cors';
 
@@ -12,7 +12,6 @@ server.post('/run', async (request, reply) => {
         headless: false,
     });
     const repository = new Repository();
-
     const routine = new Routine(repository, browser);
     await routine.execute();
 
@@ -24,6 +23,16 @@ server.post('/run', async (request, reply) => {
 server.get('/products', async (request, reply) => {
     const repository = new Repository();
     return repository.getProducts();
+});
+
+server.post('/products',async ({ body: { url, name } }: FastifyRequest<{ Body: Partial<{ name: string, url: string }> }>, reply) => {
+    const repository = new Repository();
+
+    if(!url || !name) {
+        return reply.status(422).send({ message: 'Invalid request' });
+    }
+
+    return repository.addProduct({ url, name });
 });
 
 (async () => {

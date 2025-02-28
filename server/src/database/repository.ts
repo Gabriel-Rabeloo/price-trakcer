@@ -5,6 +5,12 @@ export class Repository {
     private prisma: PrismaClient = new PrismaClient();
 
     async addProduct(data: CreateProduct): Promise<Product> {
+        const product = await this.getProductByUrl(data.url);
+
+        if(product) {
+            return product;
+        }
+
         return this.prisma.product.create({
             data,
         });
