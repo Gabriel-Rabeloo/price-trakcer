@@ -9,8 +9,8 @@ datasource db {
 
 model Product {
   id           Int            @id @default(autoincrement())
-  name         String
-  url          String         @unique
+  name         String         @unique
+  url          String
   priceHistory PriceHistory[]
 }
 

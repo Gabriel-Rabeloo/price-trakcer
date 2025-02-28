@@ -1,7 +1,7 @@
 {
   "name": "price-tracker",
   "scripts": {
-    "dev": "ts-node-dev src/server.ts"
+    "dev": "ts-node-dev --exit-child src/server.ts"
   },
   "devDependencies": {
     "@types/node": "^22.13.5",
