@@ -1,13 +1,18 @@
-import { Repository } from '../database/repository';
 import { Browser } from 'puppeteer';
-import { BestBuy } from '../adapters/best-buy';
-import { GetPriceAdapter } from '../adapters/interface';
-import { Aliexpress } from '../adapters/aliexpress';
+
 import { validURL } from '../utils';
+import { Repository } from '../database/repository';
+
+import { BestBuy } from '../strategies/best-buy';
+import { GetPriceAdapter } from '../strategies/abstract';
+import { Aliexpress } from '../strategies/aliexpress';
+import { Apple } from '../strategies/apple';
+
 export class Routine {
-    private adapters: Record<string, { adapter: GetPriceAdapter; name: string }> = {
+    private strategies: Record<string, { adapter: GetPriceAdapter; name: string }> = {
         'https://www.bestbuy.ca': { adapter: new BestBuy(), name: BestBuy.name },
         'https://www.aliexpress.com': { adapter: new Aliexpress(), name: Aliexpress.name },
+        'https://www.apple.com/': { adapter: new Apple(), name: Apple.name },
     };
 
     constructor(
@@ -15,10 +20,10 @@ export class Routine {
         private browser: Browser,
     ) {}
 
-    private getAdapterByUrl(url: string): { adapter: GetPriceAdapter; name: string } | null {
-        for (const key in this.adapters) {
+    private defineStrategyByUrl(url: string): { adapter: GetPriceAdapter; name: string } | null {
+        for (const key in this.strategies) {
             if (url.startsWith(key)) {
-                return this.adapters[key];
+                return this.strategies[key];
             }
         }
         return null;
@@ -31,15 +36,24 @@ export class Routine {
 
         const page = await this.browser.newPage();
 
+        const counters = {
+            total: products.length,
+            success: 0,
+            error: 0,
+            notFound: 0,
+        };
+
         for (const product of products) {
             try {
                 if (!validURL(product.url)) {
                     console.log('Invalid URL for product:', product.name);
+                    counters.error++;
                     continue;
                 }
-                const { adapter, name } = this.getAdapterByUrl(product.url) || {};
+                const { adapter, name } = this.defineStrategyByUrl(product.url) || {};
 
                 if (!adapter) {
+                    counters.notFound++;
                     console.log(`Adapter not found for product: ${product.name}`);
                     continue;
                 }
@@ -54,6 +68,7 @@ export class Routine {
                 });
 
                 if (!price) {
+                    counters.notFound++;
                     console.log(`Price not found for product: ${product.name}`);
                     continue;
                 }
@@ -65,6 +80,7 @@ export class Routine {
                     price,
                 });
             } catch (err) {
+                counters.error++;
                 console.log('Error while processing product:', product.name, err);
             }
         }
@@ -72,5 +88,6 @@ export class Routine {
         await page.close();
 
         console.log('finished routine');
+        console.log(counters);
     }
 }

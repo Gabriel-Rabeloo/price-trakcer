@@ -1,6 +1,6 @@
 # Web Scraping Price Tracker
 
-This project is a web scraping application that collects product prices from **BestBuy** and **AliExpress** and visualizes the price history through interactive charts.
+This project is a web scraping application that collects product prices from **BestBuy**, **Apple**, and **AliExpress** and visualizes the price history through interactive charts.
 
 ⚠️ Note: The project is deployed in a free workspace, so it may take a little longer to load when accessed for the first time.
 
