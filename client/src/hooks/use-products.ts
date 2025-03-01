@@ -3,7 +3,7 @@ import axios from 'axios';
 import { Product } from '../types/api.ts';
 
 const fetchProducts = async () => {
-    const { data } = await axios.get<Array<Product>>('http://localhost:4242/products');
+    const { data } = await axios.get<Array<Product>>('https://price-trakcer.onrender.com/products');
     return data;
 };
 
