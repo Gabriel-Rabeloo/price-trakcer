@@ -8,19 +8,7 @@ const queryClient = new QueryClient();
 const App: React.FC = () => {
     return (
         <QueryClientProvider client={queryClient}>
-            <div
-                style={{
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    height: '100vh', // Full viewport height
-                    width: '100vw', // Full viewport width
-                    backgroundColor: '#111', // Darker background
-                    color: 'white',
-                }}
-            >
-                <ProductsView />
-            </div>
+            <ProductsView />
         </QueryClientProvider>
     );
 };
@@ -29,23 +17,36 @@ const ProductsView: React.FC = () => {
     const { data: products, isLoading, error } = useProducts();
 
     if (isLoading) return <p>Loading...</p>;
-    if (error) return <p>Error fetching products.</p>;
+    if (error || !products) return <p>Error fetching products.</p>;
 
     return (
         <div
             style={{
-                width: '80%',
-                height: '80%',
-                maxWidth: '1200px',
+                display: 'flex',
+                flexWrap: 'wrap',
+                justifyContent: 'center',
+                gap: '20px',
                 padding: '20px',
-                backgroundColor: '#222', // Slightly lighter than background
-                borderRadius: '10px',
-                boxShadow: '0 4px 10px rgba(0,0,0,0.3)',
-                textAlign: 'center',
             }}
         >
-            <h1>Histórico de Preços</h1>
-            <PriceChart products={products} />
+            {products
+                .filter((el) => el.priceHistory.length)
+                .map((product) => (
+                    <div
+                        key={product.id}
+                        style={{
+                            width: '45%',
+                            backgroundColor: '#f8f7f7',
+                            borderRadius: '10px',
+                            boxShadow: '0 4px 10px rgba(0,0,0,0.3)',
+                            textAlign: 'center',
+                            padding: '20px',
+                        }}
+                    >
+                        <h1 style={{ color: '#000', fontSize: '1.5rem' }}>{product.name}</h1>
+                        <PriceChart product={product} />
+                    </div>
+                ))}
         </div>
     );
 };
