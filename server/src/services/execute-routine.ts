@@ -45,7 +45,7 @@ export class Routine {
 
             console.log(`Getting price from ${name}`);
 
-            await page.goto(product.url, { waitUntil: ['networkidle0', 'networkidle2'] });
+            await page.goto(product.url, { waitUntil: ['networkidle0', 'networkidle2'], timeout: 0 });
 
             const price = await adapter.getPrice({
                 page,
