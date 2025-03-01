@@ -5,11 +5,15 @@ import cors from '@fastify/cors';
 import { Repository } from './database/repository';
 import { Routine } from './services/execute-routine';
 
-const server = Fastify({ logger: true });
+const server = Fastify({ logger: false });
 
 server.post('/run', async (request, reply) => {
     const browser = await puppeteer.launch({
         headless: 'shell',
+        args: ['--lang=en-US'],
+        env: {
+            LANG: 'en-US',
+        },
     });
     const repository = new Repository();
     const routine = new Routine(repository, browser);

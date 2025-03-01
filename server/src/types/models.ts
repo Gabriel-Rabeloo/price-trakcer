@@ -19,5 +19,4 @@ export interface PriceHistory {
 export type CreatePriceHistory = {
     productId: number;
     price: number;
-    scrapedAt: Date;
 };

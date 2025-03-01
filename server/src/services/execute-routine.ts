@@ -1,32 +1,53 @@
 import { Repository } from '../database/repository';
 import { Browser } from 'puppeteer';
 import { BestBuy } from '../adapters/best-buy';
+import { GetPriceAdapter } from '../adapters/interface';
+import { Aliexpress } from '../adapters/aliexpress';
+import { validURL } from '../utils';
 export class Routine {
+    private adapters: Record<string, { adapter: GetPriceAdapter; name: string }> = {
+        'https://www.bestbuy.ca': { adapter: new BestBuy(), name: BestBuy.name },
+        'https://www.aliexpress.com': { adapter: new Aliexpress(), name: Aliexpress.name },
+    };
+
     constructor(
         private readonly repository: Repository,
         private browser: Browser,
     ) {}
 
-    async execute(): Promise<void> {
-        console.log('Executing routine');
+    private getAdapterByUrl(url: string): { adapter: GetPriceAdapter; name: string } | null {
+        for (const key in this.adapters) {
+            if (url.startsWith(key)) {
+                return this.adapters[key];
+            }
+        }
+        return null;
+    }
 
-        const products = await this.repository.getProducts();
-        const scrapedAt = new Date();
-        products.push({
-            id: 2,
-            name: 'iPhone 13 Pro',
-            url: 'https://apple.com',
-        });
+    async execute(): Promise<void> {
+        const products = await this.repository.getProducts({ include: { priceHistory: false } });
+
+        console.log('Executing routine for products:', products.length);
+
+        const page = await this.browser.newPage();
 
         for (const product of products) {
-            if (!product.url.startsWith('https://www.bestbuy.ca')) {
+            if (!validURL(product.url)) {
+                console.log('Invalid URL for product:', product.name);
+                continue;
+            }
+            const { adapter, name } = this.getAdapterByUrl(product.url) || {};
+
+            if (!adapter) {
+                console.log(`Adapter not found for product: ${product.name}`);
                 continue;
             }
 
-            const page = await this.browser.newPage();
+            console.log(`Getting price from ${name}`);
 
-            const price = await BestBuy.getPrice({
-                url: product.url,
+            await page.goto(product.url, { waitUntil: ['networkidle0', 'networkidle2'] });
+
+            const price = await adapter.getPrice({
                 page,
             });
 
@@ -35,16 +56,16 @@ export class Routine {
                 continue;
             }
 
-            console.log(`${product.name} oioioi ${price}`);
+            console.log(`Price found for ${product.name} $${price}`);
 
-            await Promise.all([
-                this.repository.setPrice({
-                    productId: product.id,
-                    price: price + (Math.floor(Math.random() * 1000) + 100),
-                    scrapedAt,
-                }),
-                page.close(),
-            ]);
+            await this.repository.setPrice({
+                productId: product.id,
+                price,
+            });
         }
+
+        await page.close();
+
+        console.log('finished routine');
     }
 }

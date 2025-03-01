@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { CreatePriceHistory, CreateProduct, PriceHistory, Product } from '../types/models';
+import { KeysOf } from 'fastify/types/type-provider';
 
 export class Repository {
     private prisma: PrismaClient = new PrismaClient();
@@ -7,7 +8,7 @@ export class Repository {
     async addProduct(data: CreateProduct): Promise<Product> {
         const product = await this.getProductByUrl(data.url);
 
-        if(product) {
+        if (product) {
             return product;
         }
 
@@ -24,11 +25,11 @@ export class Repository {
         });
     }
 
-    async getProducts(): Promise<Product[]> {
+    async getProducts(
+        { include }: { include: Partial<Record<KeysOf<Product & { priceHistory: PriceHistory }>, boolean>> } = { include: { priceHistory: true } },
+    ): Promise<Product[]> {
         return this.prisma.product.findMany({
-            include: {
-                priceHistory: true,
-            },
+            include,
         });
     }
 
