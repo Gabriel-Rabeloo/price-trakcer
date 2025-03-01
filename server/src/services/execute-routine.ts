@@ -32,36 +32,41 @@ export class Routine {
         const page = await this.browser.newPage();
 
         for (const product of products) {
-            if (!validURL(product.url)) {
-                console.log('Invalid URL for product:', product.name);
-                continue;
+            try {
+                if (!validURL(product.url)) {
+                    console.log('Invalid URL for product:', product.name);
+                    continue;
+                }
+                const { adapter, name } = this.getAdapterByUrl(product.url) || {};
+
+                if (!adapter) {
+                    console.log(`Adapter not found for product: ${product.name}`);
+                    continue;
+                }
+
+                console.log(`Navigating to ${product.url}`);
+                await page.goto(product.url, { waitUntil: ['networkidle0', 'networkidle2'], timeout: 0 });
+
+                console.log(`Getting price from ${name}`);
+
+                const price = await adapter.getPrice({
+                    page,
+                });
+
+                if (!price) {
+                    console.log(`Price not found for product: ${product.name}`);
+                    continue;
+                }
+
+                console.log(`Price found for ${product.name} $${price}`);
+
+                await this.repository.setPrice({
+                    productId: product.id,
+                    price,
+                });
+            } catch (err) {
+                console.log('Error while processing product:', product.name, err);
             }
-            const { adapter, name } = this.getAdapterByUrl(product.url) || {};
-
-            if (!adapter) {
-                console.log(`Adapter not found for product: ${product.name}`);
-                continue;
-            }
-
-            console.log(`Getting price from ${name}`);
-
-            await page.goto(product.url, { waitUntil: ['networkidle0', 'networkidle2'], timeout: 0 });
-
-            const price = await adapter.getPrice({
-                page,
-            });
-
-            if (!price) {
-                console.log(`Price not found for product: ${product.name}`);
-                continue;
-            }
-
-            console.log(`Price found for ${product.name} $${price}`);
-
-            await this.repository.setPrice({
-                productId: product.id,
-                price,
-            });
         }
 
         await page.close();
