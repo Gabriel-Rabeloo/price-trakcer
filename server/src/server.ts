@@ -9,7 +9,7 @@ const server = Fastify({ logger: true });
 
 server.post('/run', async (request, reply) => {
     const browser = await puppeteer.launch({
-        headless: false,
+        headless: 'shell',
     });
     const repository = new Repository();
     const routine = new Routine(repository, browser);
