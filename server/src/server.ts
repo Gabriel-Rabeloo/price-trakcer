@@ -45,6 +45,7 @@ server.post('/products', async ({ body: { url, name } }: FastifyRequest<{ Body: 
         origin: '*',
     });
     await server.listen({
+        host: 'RENDER' in process.env ? `0.0.0.0` : `localhost`,
         port: Number(process.env.PORT || 4242),
     });
 })();
