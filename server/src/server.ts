@@ -1,4 +1,4 @@
-import Fastify, {FastifyRequest} from 'fastify';
+import Fastify, { FastifyRequest } from 'fastify';
 import puppeteer from 'puppeteer';
 import cors from '@fastify/cors';
 
@@ -13,11 +13,16 @@ server.post('/run', async (request, reply) => {
     });
     const repository = new Repository();
     const routine = new Routine(repository, browser);
-    await routine.execute();
 
-    await browser.close();
-
-    return reply.status(204).send();
+    try {
+        await routine.execute();
+        return reply.status(204).send();
+    } catch (e) {
+        console.log(e);
+        return reply.status(500).send({ message: 'Internal server error' });
+    } finally {
+        await browser.close();
+    }
 });
 
 server.get('/products', async (request, reply) => {
@@ -25,10 +30,10 @@ server.get('/products', async (request, reply) => {
     return repository.getProducts();
 });
 
-server.post('/products',async ({ body: { url, name } }: FastifyRequest<{ Body: Partial<{ name: string, url: string }> }>, reply) => {
+server.post('/products', async ({ body: { url, name } }: FastifyRequest<{ Body: Partial<{ name: string; url: string }> }>, reply) => {
     const repository = new Repository();
 
-    if(!url || !name) {
+    if (!url || !name) {
         return reply.status(422).send({ message: 'Invalid request' });
     }
 

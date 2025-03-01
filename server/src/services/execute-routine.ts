@@ -23,8 +23,6 @@ export class Routine {
                 continue;
             }
 
-            // if (product.id === 34) continue;
-
             const page = await this.browser.newPage();
 
             const price = await BestBuy.getPrice({
@@ -42,7 +40,7 @@ export class Routine {
             await Promise.all([
                 this.repository.setPrice({
                     productId: product.id,
-                    price,
+                    price: price + (Math.floor(Math.random() * 1000) + 100),
                     scrapedAt,
                 }),
                 page.close(),
